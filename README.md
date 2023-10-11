@@ -1,8 +1,9 @@
-# SYNAPSE.H
-Simple std-style library for training Neural Networks
+# tccurl 
+Hacking tcc compiler
+
 ## Installation
 Start by:
 docker-compose up -d
-docer-compose exec synapse bash
+docker-compose exec tccurl bash
 
 To exit bash shell type "exit"
