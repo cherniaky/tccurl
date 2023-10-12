@@ -1,0 +1,7 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "*.rmd": "markdown",
+        "stb_image.h": "c"
+    }
+}

@@ -1798,6 +1798,12 @@ ST_FUNC void preprocess(int is_bof)
 	    buf[len - 2] = '\0';
         }
 
+
+    printf("+++++++++++++++++++++++++++++++++++++++\n");
+    printf("+++ %s\n", buf);
+    printf("+++++++++++++++++++++++++++++++++++++++\n");
+
+
         if (s1->include_stack_ptr >= s1->include_stack + INCLUDE_STACK_SIZE)
             tcc_error("#include recursion too deep");
         /* store current file in stack, but increment stack later below */
@@ -1841,6 +1847,7 @@ ST_FUNC void preprocess(int is_bof)
 #endif
                 goto include_done;
             }
+
 
             if (tcc_open(s1, buf1) < 0)
                 continue;
