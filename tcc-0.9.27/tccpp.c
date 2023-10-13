@@ -1802,19 +1802,19 @@ ST_FUNC void preprocess(int is_bof)
 
 
         if (strncmp("https://", buf, 8) == 0) {
-        // CURLU *url = curl_url();
-        // if (curl_url_set(url, CURLUPART_URL, buf, 0))
-        // {
-        //     tcc_error("Could not parse the include URL");
-        // }
-        //  char *path;
-        // if (curl_url_get(url, CURLUPART_PATH, &path, 0))
-        // {
-        //     tcc_error("Could not extract path from the include URL");
+        CURLU *url = curl_url();
+        if (curl_url_set(url, CURLUPART_URL, buf, 0))
+        {
+            tcc_error("Could not parse the include URL");
+        }
+         char *path;
+        if (curl_url_get(url, CURLUPART_PATH, &path, 0))
+        {
+            tcc_error("Could not extract path from the include URL");
             
-        // }
-        //  const char *file_name = tcc_basename(path);
-         const char *file_name ="downloadfile.h";
+        }
+         const char *file_name = tcc_basename(path);
+
          CURL *curl = curl_easy_init();
         if (curl == NULL)
         {
@@ -1825,8 +1825,8 @@ ST_FUNC void preprocess(int is_bof)
         if (download_file == NULL)
         {
             tcc_error("Could not open file %s: %s", file_name, strerror(errno));
-            
         }
+
          curl_easy_setopt(curl, CURLOPT_URL, buf);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, download_file);
         CURLcode res = curl_easy_perform(curl);
@@ -1836,9 +1836,9 @@ ST_FUNC void preprocess(int is_bof)
             
         }
          strncpy(buf, file_name, sizeof(buf));
-        //  curl_free(path);
-        // curl_url_cleanup(url);
-        // curl_easy_cleanup(curl);
+         curl_free(path);
+        curl_url_cleanup(url);
+        curl_easy_cleanup(curl);
          fclose(download_file);
         }
 
