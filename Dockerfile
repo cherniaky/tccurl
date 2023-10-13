@@ -1,6 +1,8 @@
 FROM "jakubhricik/ubuntu-zap"
 
 # WORKDIR /app
+RUN apt-get update -y
+RUN apt-get install libcurl4-gnutls-devy
 
 RUN apt-get install texinfo -y
 

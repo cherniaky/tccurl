@@ -1,6 +1,6 @@
 /*
  *  TCC - Tiny C Compiler
- * 
+ *
  *  Copyright (c) 2001-2004 Fabrice Bellard
  *
  * This library is free software; you can redistribute it and/or
@@ -20,12 +20,13 @@
 
 #include "tcc.h"
 #if ONE_SOURCE
-# include "libtcc.c"
+#include "libtcc.c"
 #endif
 #include "tcctools.c"
+#include <curl/curl.h>
 
 static const char help[] =
-    "Tiny C Compiler "TCC_VERSION" - Copyright (C) 2001-2006 Fabrice Bellard\n"
+    "Tiny C Compiler " TCC_VERSION " - Copyright (C) 2001-2006 Fabrice Bellard\n"
     "Usage: tcc [options...] [-o outfile] [-c] infile(s)...\n"
     "       tcc [options...] -run infile [arguments...]\n"
     "General options:\n"
@@ -77,7 +78,7 @@ static const char help[] =
     ;
 
 static const char help2[] =
-    "Tiny C Compiler "TCC_VERSION" - More Options\n"
+    "Tiny C Compiler " TCC_VERSION " - More Options\n"
     "Special options:\n"
     "  -P -P1                        with -E: no/alternative #line output\n"
     "  -dD -dM                       with -E: output #define directives\n"
@@ -137,42 +138,40 @@ static const char help2[] =
     "Predefined macros:\n"
     "  tcc -E -dM - < /dev/null\n"
 #endif
-    "See also the manual for more details.\n"
-    ;
+    "See also the manual for more details.\n";
 
 static const char version[] =
-    "tcc version "TCC_VERSION" ("
+    "tcc version " TCC_VERSION " ("
 #ifdef TCC_TARGET_I386
-        "i386"
+    "i386"
 #elif defined TCC_TARGET_X86_64
-        "x86_64"
+    "x86_64"
 #elif defined TCC_TARGET_C67
-        "C67"
+    "C67"
 #elif defined TCC_TARGET_ARM
-        "ARM"
+    "ARM"
 #elif defined TCC_TARGET_ARM64
-        "AArch64"
+    "AArch64"
 #endif
 #ifdef TCC_ARM_HARDFLOAT
-        " Hard Float"
+    " Hard Float"
 #endif
 #ifdef TCC_TARGET_PE
-        " Windows"
+    " Windows"
 #elif defined(TCC_TARGET_MACHO)
-        " Darwin"
+    " Darwin"
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-        " FreeBSD"
+    " FreeBSD"
 #else
-        " Linux"
+    " Linux"
 #endif
-    ")\n"
-    ;
+    ")\n";
 
 static void print_dirs(const char *msg, char **paths, int nb_paths)
 {
     int i;
     printf("%s:\n%s", msg, nb_paths ? "" : "  -\n");
-    for(i = 0; i < nb_paths; i++)
+    for (i = 0; i < nb_paths; i++)
         printf("  %s\n", paths[i]);
 }
 
@@ -182,27 +181,30 @@ static void print_search_dirs(TCCState *s)
     /* print_dirs("programs", NULL, 0); */
     print_dirs("include", s->sysinclude_paths, s->nb_sysinclude_paths);
     print_dirs("libraries", s->library_paths, s->nb_library_paths);
-    printf("libtcc1:\n  %s/"TCC_LIBTCC1"\n", s->tcc_lib_path);
+    printf("libtcc1:\n  %s/" TCC_LIBTCC1 "\n", s->tcc_lib_path);
 #ifndef TCC_TARGET_PE
     print_dirs("crt", s->crt_paths, s->nb_crt_paths);
-    printf("elfinterp:\n  %s\n",  DEFAULT_ELFINTERP(s));
+    printf("elfinterp:\n  %s\n", DEFAULT_ELFINTERP(s));
 #endif
 }
 
 static void set_environment(TCCState *s)
 {
-    char * path;
+    char *path;
 
     path = getenv("C_INCLUDE_PATH");
-    if(path != NULL) {
+    if (path != NULL)
+    {
         tcc_add_sysinclude_path(s, path);
     }
     path = getenv("CPATH");
-    if(path != NULL) {
+    if (path != NULL)
+    {
         tcc_add_include_path(s, path);
     }
     path = getenv("LIBRARY_PATH");
-    if(path != NULL) {
+    if (path != NULL)
+    {
         tcc_add_library_path(s, path);
     }
 }
@@ -220,12 +222,11 @@ static char *default_outputfile(TCCState *s, const char *first_file)
 #ifdef TCC_TARGET_PE
     if (s->output_type == TCC_OUTPUT_DLL)
         strcpy(ext, ".dll");
-    else
-    if (s->output_type == TCC_OUTPUT_EXE)
+    else if (s->output_type == TCC_OUTPUT_EXE)
         strcpy(ext, ".exe");
     else
 #endif
-    if (s->output_type == TCC_OUTPUT_OBJ && !s->option_r && *ext)
+        if (s->output_type == TCC_OUTPUT_OBJ && !s->option_r && *ext)
         strcpy(ext, ".o");
     else
         strcpy(buf, "a.out");
@@ -239,7 +240,7 @@ static unsigned getclock_ms(void)
 #else
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec*1000 + (tv.tv_usec+500)/1000;
+    return tv.tv_sec * 1000 + (tv.tv_usec + 500) / 1000;
 #endif
 }
 
@@ -249,7 +250,8 @@ int main(int argc0, char **argv0)
     int ret, opt, n = 0, t = 0;
     unsigned start_time = 0;
     const char *first_file;
-    int argc; char **argv;
+    int argc;
+    char **argv;
     FILE *ppfp = stdout;
 
 redo:
@@ -257,7 +259,13 @@ redo:
     s = tcc_new();
     opt = tcc_parse_args(s, &argc, &argv, 1);
 
-    if ((n | t) == 0) {
+    if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0)
+    {
+        tcc_error("Could not initialize Global curl context. (Yes, your C compiler is using curl)");
+    }
+
+    if ((n | t) == 0)
+    {
         if (opt == OPT_HELP)
             return printf(help), 1;
         if (opt == OPT_HELP2)
@@ -274,7 +282,8 @@ redo:
 #endif
         if (opt == OPT_V)
             return 0;
-        if (opt == OPT_PRINT_DIRS) {
+        if (opt == OPT_PRINT_DIRS)
+        {
             /* initialize search dirs */
             set_environment(s);
             tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
@@ -286,18 +295,24 @@ redo:
         if (n == 0)
             tcc_error("no input files\n");
 
-        if (s->output_type == TCC_OUTPUT_PREPROCESS) {
-            if (s->outfile) {
+        if (s->output_type == TCC_OUTPUT_PREPROCESS)
+        {
+            if (s->outfile)
+            {
                 ppfp = fopen(s->outfile, "w");
                 if (!ppfp)
                     tcc_error("could not write '%s'", s->outfile);
             }
-        } else if (s->output_type == TCC_OUTPUT_OBJ && !s->option_r) {
+        }
+        else if (s->output_type == TCC_OUTPUT_OBJ && !s->option_r)
+        {
             if (s->nb_libraries)
                 tcc_error("cannot specify libraries with -c");
             if (n > 1 && s->outfile)
                 tcc_error("cannot specify output file with -c many files");
-        } else {
+        }
+        else
+        {
             if (s->option_pthread)
                 tcc_set_options(s, "-lpthread");
         }
@@ -312,19 +327,22 @@ redo:
     tcc_set_output_type(s, s->output_type);
     s->ppfp = ppfp;
 
-    if ((s->output_type == TCC_OUTPUT_MEMORY
-      || s->output_type == TCC_OUTPUT_PREPROCESS) && (s->dflag & 16))
+    if ((s->output_type == TCC_OUTPUT_MEMORY || s->output_type == TCC_OUTPUT_PREPROCESS) && (s->dflag & 16))
         s->dflag |= t ? 32 : 0, s->run_test = ++t, n = s->nb_files;
 
     /* compile or add each files or library */
-    for (first_file = NULL, ret = 0;;) {
+    for (first_file = NULL, ret = 0;;)
+    {
         struct filespec *f = s->files[s->nb_files - n];
         s->filetype = f->type;
         s->alacarte_link = f->alacarte;
-        if (f->type == AFF_TYPE_LIB) {
+        if (f->type == AFF_TYPE_LIB)
+        {
             if (tcc_add_library_err(s, f->name) < 0)
                 ret = 1;
-        } else {
+        }
+        else
+        {
             if (1 == s->verbose)
                 printf("-> %s\n", f->name);
             if (!first_file)
@@ -334,21 +352,28 @@ redo:
         }
         s->filetype = 0;
         s->alacarte_link = 1;
-        if (--n == 0 || ret
-            || (s->output_type == TCC_OUTPUT_OBJ && !s->option_r))
+        if (--n == 0 || ret || (s->output_type == TCC_OUTPUT_OBJ && !s->option_r))
             break;
     }
 
-    if (s->run_test) {
+    if (s->run_test)
+    {
         t = 0;
-    } else if (s->output_type == TCC_OUTPUT_PREPROCESS) {
+    }
+    else if (s->output_type == TCC_OUTPUT_PREPROCESS)
+    {
         ;
-    } else if (0 == ret) {
-        if (s->output_type == TCC_OUTPUT_MEMORY) {
+    }
+    else if (0 == ret)
+    {
+        if (s->output_type == TCC_OUTPUT_MEMORY)
+        {
 #ifdef TCC_IS_NATIVE
             ret = tcc_run(s, argc, argv);
 #endif
-        } else {
+        }
+        else
+        {
             if (!s->outfile)
                 s->outfile = default_outputfile(s, first_file);
             if (tcc_output_file(s, s->outfile))

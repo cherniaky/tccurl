@@ -2,12 +2,7 @@
 
 #define STBI_NO_SIMD
 #define STB_IMAGE_IMPLEMENTATION
-#define HTTP_INCLUDE
-#ifdef HTTP_INCLUDE
 #include "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h"
-#else
-#include "./stb_image.h"
-#endif
 
 int main(int argc, char **argv)
 {
