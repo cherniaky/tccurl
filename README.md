@@ -11,7 +11,7 @@ Then do:
 $ docker-compose up -d 
 $ docker-compose exec tccurl bash
 ```
-Inside the container run `build.sh`, it will compile the compiler and install it <br/>
+Inside the container run `build.sh`, it will compile the compiler and install it, and compile main.c <br/>
 Then run:
 ```
 ./main img.png gray.png
