@@ -16,4 +16,5 @@ Then run:
 ```
 ./main img.png gray.png
 ```
-This will run C program compiled with updated ```tcc``` source code
+This will run C program compiled with updated ```tcc``` source code <br/>
+Was done wathing Tsoding programming [stream](https://www.youtube.com/watch?v=4vSyqK3SK-0)
